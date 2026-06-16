@@ -12,9 +12,9 @@ import uvicorn
 # ==========================================
 # 1. TELEGRAM BOT QISMI (TOKEN VA SOZLAMALAR)
 # ==========================================
-API_TOKEN = "7884452360:AAZg_pt5fBJfhWVyH9ZwT9_Ub3_iKz-XpCM"
+API_TOKEN = "8849052059:AAE9g_p151kPqhVb7SZ9M79r_In0_sgChHg"
 ADMIN_ID = 5143323565
-REQUIRED_CHANNEL = "@tradefxtt"  # Majburiy obuna kanali
+REQUIRED_CHANNEL = "@tekkist1"  # Majburiy obuna kanali
 WEB_APP_URL = "https://traderfx-app.onrender.com/"
 
 bot = telebot.TeleBot(API_TOKEN)
