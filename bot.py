@@ -195,3 +195,14 @@ if __name__ == "__main__":
     threading.Thread(target=run_bot, daemon=True).start()
     uvicorn.run(app, host="0.0.0.0", port=10000)
                                      
+
+from fastapi.responses import FileResponse
+import os
+
+@app.get("/")
+async def read_index():
+    index_path = os.path.join(os.path.dirname(__file__), 'index.html')
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {"error": "index.html topilmadi"}
+    
