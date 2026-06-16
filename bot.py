@@ -10,7 +10,7 @@ from flask import Flask, send_from_directory, jsonify
 # 1. TELEGRAM BOT QISMI
 # ==========================================
 API_TOKEN = "8849052059:AAE9g_p151kPqhVb7SZ9M79r_In0_sgChHg"
-ADMIN_ID = 5143323565
+ADMIN_ID = 7835537335
 REQUIRED_CHANNEL = "@tekkist1"
 WEB_APP_URL = "https://traderfx-app.onrender.com"
 
