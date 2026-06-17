@@ -3,7 +3,7 @@ import telebot
 from flask import Flask, send_from_directory, request
 
 # 1. Botni sozlash (Tokening o'zingniki)
-TOKEN = "8849052059:AAE9g_p151kPqhVb7SZ9M79r_In0_sgChHg"
+TOKEN = "8849052059:AAFTZsNpsnY5niZZnvlFQP-iX4U0CwXFwSQ‌‌"
 bot = telebot.TeleBot(TOKEN)
 server = Flask(__name__)
 
