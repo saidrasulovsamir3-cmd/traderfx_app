@@ -1,146 +1,58 @@
 import os
-import random
-import threading
-from flask import Flask, jsonify, request, send_from_directory
-import telebot
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from flask import Flask, render_template, request, jsonify
+from threading import Thread
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.types import WebAppInfo, ReplyKeyboardMarkup, KeyboardButton
+import database  # O'zimiz yaratgan baza fayli
 
-TOKEN = "8849052059:AAFTZsNpsnY5niZZnvlFQP-iX4U0CwXFwSQ"
-ADMIN_ID = 7835537335
+TOKEN = os.getenv("BOT_TOKEN")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-app.onrender.com")
 
-bot = telebot.TeleBot(TOKEN)
-app = Flask(__name__, template_folder='.', static_folder='.')
-
-users_db = {}
-
-def init_user(user_id, username="Treder"):
-    if user_id not in users_db:
-        internal_code = str(abs(hash(str(user_id))))[:6]
-        users_db[user_id] = {
-            "balance": 100,
-            "internal_code": internal_code,
-            "wins": 0,
-            "losses": 0,
-            "win_rate": 50
-        }
-    return users_db[user_id]
-
-@bot.message_handler(commands=['start'])
-def start_command(message):
-    user_id = message.from_user.id
-    username = message.from_user.first_name
-    init_user(user_id, username)
-    
-    web_app_url = "https://traderfx-app.onrender.com"
-    
-    # KLAVIATURA XATOSINI YO'QOTISH UCHUN INLINE TUGMA QILAMIZ
-    markup = InlineKeyboardMarkup()
-    web_app_btn = InlineKeyboardButton(text="📈 Trade App-ni ochish", web_app=WebAppInfo(url=web_app_url))
-    markup.add(web_app_btn)
-    
-    bot.send_message(
-        message.chat.id,
-        f"👋 Salom {username}! *TraderFX Stars* botiga xush kelibsiz!\n\n"
-        f"Sizga start uchun *100 Stars* bonus berildi. Pastdagi tugmani bosib ilovani oching!",
-        reply_markup=markup,
-        parse_mode="Markdown"
-    )
+bot = Bot(token=TOKEN)
+dp = Dispatcher(bot)
+app = Flask(__name__)
 
 @app.route('/')
-def index():
-    return send_from_directory('.', 'index.html')
+def home():
+    return render_template('index.html')
 
-@app.route('/<path:path>')
-def serve_static(path):
-    return send_from_directory('.', path)
-
-@app.route('/api/user-info', methods=['GET'])
-def get_user_info():
-    user_id = request.args.get('user_id', type=int)
-    if not user_id:
-        return jsonify({"status": "error", "message": "User ID yetishmayapti"})
-    
-    user_data = init_user(user_id)
-    is_admin = (user_id == ADMIN_ID)
-    
-    return jsonify({
-        "status": "success",
-        "data": user_data,
-        "is_admin": is_admin
-    })
-
-@app.route('/api/trade/start', methods=['POST'])
-def start_trade():
+# Foydalanuvchi ma'lumotlarini olish uchun API endpoint (Mini App ichiga yuboradi)
+@app.route('/api/get_user', methods=['POST'])
+def get_user():
     data = request.json
-    user_id = int(data.get('user_id'))
-    amount = int(data.get('amount'))
-    
-    user = init_user(user_id)
-    if amount > user['balance']:
-        return jsonify({"status": "error", "message": "Mablag' yetarli emas"})
-        
-    chance = random.randint(1, 100)
-    if chance <= user['win_rate']:
-        result = 'win'
-        user['balance'] += amount
-        user['wins'] += 1
-    else:
-        result = 'lose'
-        user['balance'] -= amount
-        user['losses'] += 1
-        
-    return jsonify({
-        "status": "success",
-        "result": result,
-        "new_balance": user['balance']
-    })
+    user_id = data.get("user_id")
+    user_info = database.get_user_data(user_id)
+    if user_info:
+        return jsonify(user_info)
+    return jsonify({"error": "User not found"}), 404
 
-@app.route('/api/transfer', methods=['POST'])
-def transfer_stars():
-    data = request.json
-    sender_id = int(data.get('user_id'))
-    target_code = data.get('code')
-    amount = int(data.get('amount'))
+@dp.message_handler(commands=['start'])
+async def start_command(message: types.Message):
+    user_id = message.from_user.id
+    username = message.from_user.username or "NoUsername"
+    full_name = message.from_user.full_name
     
-    sender = init_user(sender_id)
-    if amount > sender['balance']:
-        return jsonify({"status": "error", "message": "Balansda yetarli Stars yo'q!"})
-        
-    receiver_id = None
-    for uid, udata in users_db.items():
-        if udata['internal_code'] == target_code:
-            receiver_id = uid
-            break
-            
-    if not receiver_id:
-        return jsonify({"status": "error", "message": "Bunday kodli foydalanuvchi topilmadi!"})
-        
-    sender['balance'] -= amount
-    users_db[receiver_id]['balance'] += amount
+    # Bazaga qo'shish
+    database.add_user(user_id, username, full_name)
     
-    try:
-        bot.send_message(sender_id, f"💸 *O'tkazma muvaffaqiyatli!*\n\nSiz {target_code} kodli foydalanuvchiga *{amount} Stars* o'tkazdingiz.", parse_mode="Markdown")
-        bot.send_message(receiver_id, f"💰 *Sizga pul keldi!*\n\nSizning hisobingizga *{amount} Stars* o'tkazildi!", parse_mode="Markdown")
-    except Exception as e:
-        pass
+    markup = ReplyKeyboardMarkup(resize_keyboard=True)
+    web_app_info = WebAppInfo(url=WEBAPP_URL)
+    btn_app = KeyboardButton(text="🚀 Ilovani ochish", web_app=web_app_info)
+    markup.add(btn_app)
+    
+    await message.answer(
+        f"Salom {full_name}! TraderFX tizimiga xush kelibsiz.\n"
+        "Ilovani ochish tugmasini bosing va 5 ta panelga ega tizimni ko'ring!",
+        reply_markup=markup
+    )
 
-    return jsonify({"status": "success"})
-
-@app.route('/api/admin/set-rate', methods=['POST'])
-def set_win_rate():
-    data = request.json
-    target_user_id = int(data.get('target_user_id'))
-    rate = int(data.get('rate'))
-    
-    user = init_user(target_user_id)
-    user['win_rate'] = rate
-    return jsonify({"status": "success"})
-
-if __name__ == "__main__":
-    bot_thread = threading.Thread(target=lambda: bot.infinity_polling(skip_pending=True))
-    bot_thread.daemon = True
-    bot_thread.start()
-    
-    port = int(os.environ.get("PORT", 10000))
+def run_flask():
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
+if __name__ == '__main__':
+    flask_thread = Thread(target=run_flask)
+    flask_thread.daemon = True
+    flask_thread.start()
+    executor.start_polling(dp, skip_updates=True)
     
