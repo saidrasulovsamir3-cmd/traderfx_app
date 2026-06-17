@@ -5,7 +5,7 @@ import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, WebAppInfo
 
 # 1. SOZLAMALAR (Tokeningizni shu yerga ham xavfsizlik uchun yozib qo'ydim)
-TOKEN = "8849052059:AAFTZsNpsnY5niZZnvlFQP-IX4U0CWxfWsQ"
+TOKEN = "8849052059:AAFl352_KQWgnT1PyIf_LdQpvPQAcs9RDDs"
 CHANNELS = ["@TEKKIST1"]  # Sizning kanalingiz!
 
 bot = telebot.TeleBot(TOKEN)
