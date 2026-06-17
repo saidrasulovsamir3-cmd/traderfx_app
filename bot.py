@@ -4,7 +4,7 @@ import threading
 import os
 
 # Bot sozlamalari
-TOKEN = "8849052059:AAFTZsNpsnY5niZZnvlFQP-IX4U0CWxfWsQ"
+TOKEN = "8849052059:AAFl352_KQWgnT1PyIf_LdQpvPQAcs9RDDs"
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
