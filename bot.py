@@ -38,5 +38,9 @@ def run_flask():
 
 if __name__ == "__main__":
     threading.Thread(target=run_flask).start()
-    bot.infinity_polling()
-    
+    # ... yuqoridagi kodlar o'zgarishsiz ...
+
+if __name__ == "__main__":
+    bot.remove_webhook()  # <--- Buni 41-qatorga qo'sh
+    threading.Thread(target=run_flask).start()
+    bot.infinity_polling() # <--- Buni esa 42-qatorga tushir
