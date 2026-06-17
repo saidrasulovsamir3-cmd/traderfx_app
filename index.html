@@ -3,243 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>tradeFX Trading Platform</title>
+    <title>TraderFX Stars App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #131722;
-            color: #ffffff;
-            margin: 0;
-            padding: 15px;
-            text-align: center;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #1c2030;
-            padding: 10px 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-        .balance-box {
-            text-align: left;
-        }
-        .balance-title {
-            font-size: 12px;
-            color: #707a8a;
-        }
-        .balance-value {
-            font-size: 18px;
-            font-weight: bold;
-            color: #f0b90b;
-        }
-        .chart-container {
-            background: #1c2030;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-        }
-        .trade-controls {
-            background: #1c2030;
-            padding: 15px;
-            border-radius: 12px;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            font-size: 14px;
-            color: #929aa5;
-            margin-bottom: 5px;
-            text-align: left;
-        }
-        input, select {
-            width: 100%;
-            padding: 10px;
-            background: #2b3040;
-            border: 1px solid #3f465a;
-            border-radius: 8px;
-            color: white;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        .btn-group {
-            display: flex;
-            gap: 10px;
-        }
-        button {
-            flex: 1;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-up { background-color: #0ecb81; color: white; }
-        .btn-down { background-color: #f6465d; color: white; }
-        button:active { transform: scale(0.98); }
-        #status-message {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            display: none;
-            font-weight: bold;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0d1117; color: #c9d1d9; font-size: 14px; padding-bottom: 70px; }
+        
+        /* Majburiy Obuna Ekrami */
+        #sub-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0d1117; z-index: 10000; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        .sub-btn { background: #238636; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; margin: 10px; font-weight: bold; display: inline-block; }
+        
+        /* Header */
+        .header { background: #161b22; padding: 15px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; }
+        .balance-box { background: #21262d; padding: 8px 15px; border-radius: 20px; border: 1px solid #30363d; font-weight: bold; color: #58a6ff; }
+
+        /* Asosiy Bo'limlar Konteyneri */
+        .tab-content { display: none; padding: 15px; }
+        .tab-content.active { display: block; }
+
+        /* 3-BO'LIM: ORTA SAHIFA (TRADE) */
+        .trade-container { display: flex; flex-direction: column; gap: 15px; align-items: center; }
+        .asset-selector { display: flex; gap: 10px; width: 100%; overflow-x: auto; padding-bottom: 5px; }
+        .asset-btn { background: #21262d; border: 1px solid #30363d; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; flex: 1; text-align: center; }
+        .asset-btn.active { background: #1f6feb; border-color: #58a6ff; }
+        
+        /* Grafik Simulyatsiyasi */
+        .chart-box { width: 100%; height: 200px; background: #161b22; border-radius: 12px; border: 1px solid #30363d; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .chart-line { width: 100%; height: 2px; background: #238636; position: absolute; transition: all 0.5s ease; }
+        
+        .input-box { width: 100%; background: #21262d; border: 1px solid #30363d; padding: 12px; border-radius: 8px; color: white; text-align: center; font-size: 16px; }
+        .trade-buttons { display: flex; gap: 15px; width: 100%; }
+        .btn-up { background: #238636; color: white; flex: 1; padding: 15px; border-radius: 8px; font-weight: bold; border: none; font-size: 16px; cursor: pointer; }
+        .btn-down { background: #da3637; color: white; flex: 1; padding: 15px; border-radius: 8px; font-weight: bold; border: none; font-size: 16px; cursor: pointer; }
+
+        /* 1-BO'LIM: STARS TASHALASH (CHAP BURCHAK) */
+        .transfer-box, .task-card, .auc-card, .acc-card { background: #161b22; border: 1px solid #30363d; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        .btn-primary { background: #1f6feb; color: white; width: 100%; padding: 12px; border-radius: 8px; border: none; font-weight: bold; margin-top: 10px; cursor: pointer; }
+
+        /* Pastki 5 talik Menyusi */
+        .navbar { position: fixed; bottom: 0; left: 0; width: 100%; height: 65px; background: #161b22; border-top: 1px solid #30363d; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #8b949e; cursor: pointer; font-size: 11px; font-weight: 500; }
+        .nav-item.active { color: #58a6ff; }
+        .nav-icon { font-size: 20px; margin-bottom: 4px; }
+        .nav-item.center-item { background: #1f6feb; color: white; width: 50px; height: 50px; border-radius: 50%; justify-content: center; margin-bottom: 20px; border: 4px solid #0d1117; }
+        .nav-item.center-item.active { background: #238636; }
+
+        /* Admin tugmasi */
+        #admin-btn { display: none; background: #f39c12; color: black; padding: 5px 10px; border-radius: 5px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
+    <div id="sub-screen">
+        <h3>📢 Davom etish uchun majburiy kanalga a'zo bo'ling!</h3>
+        <p style="color: #8b949e; margin: 10px 0 20px 0;">Obuna bo'lmasangiz ilova tizimi ochilmaydi.</p>
+        <a href="https://t.me/TEKKIST1" class="sub-btn" target="_blank">Kanalga o'tish</a>
+        <button class="sub-btn" style="background: #1f6feb;" onclick="checkSub()">✅ Obunani tekshirish</button>
+    </div>
+
     <div class="header">
-        <div class="balance-box">
-            <div class="balance-title">Asosiy Balans</div>
-            <div class="balance-value"><span id="user-balance">100</span> STARS</div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span id="username" style="font-weight: bold;">Foydalanuvchi</span>
+            <div id="admin-btn" onclick="openAdmin()">⚙️ Admin</div>
         </div>
-        <div style="text-align: right;">
-            <div id="user-name" style="font-weight: bold;">Trejder</div>
-            <div style="font-size: 11px; color: #0ecb81;">Win rate: <span id="user-wr">0</span>%</div>
+        <div class="balance-box">💰 <span id="user-balance">0</span> Stars</div>
+    </div>
+
+    <div id="tab-transfer" class="tab-content">
+        <h3>💸 Do'stga Stars Tashlash</h3>
+        <p style="color: #8b949e; margin-bottom: 15px;">Do'stingizning shaxsiy o'zgarmas kodi orqali unga balans o'tkazing.</p>
+        <div class="transfer-box">
+            <input type="text" id="target-code" class="input-box" placeholder="Do'stizning shaxsiy kodi" style="margin-bottom: 10px; text-align: left;">
+            <input type="number" id="transfer-amount" class="input-box" placeholder="Stars miqdori" style="margin-bottom: 10px; text-align: left;">
+            <button class="btn-primary" onclick="processTransfer()">Yuborish (Chek chiqarish)</button>
         </div>
     </div>
 
-    <div class="chart-container">
-        <canvas id="tradeChart" style="width:100%; height:200px;"></canvas>
-    </div>
-
-    <div class="trade-controls">
-        <div class="input-group">
-            <label for="asset-select">Aktivni tanlang:</label>
-            <select id="asset-select">
-                <option value="BTC/USDT">BTC / USDT</option>
-                <option value="ETH/USDT">ETH / USDT</option>
-                <option value="TON/USDT">TON / USDT</option>
-            </select>
-        </div>
-
-        <div class="input-group">
-            <label for="trade-amount">Investitsiya miqdori (STARS):</label>
-            <input type="number" id="trade-amount" value="10" min="1">
-        </div>
-
-        <div class="btn-group">
-            <button class="btn-up" onclick="makeTrade('BUY')">📈 YUQORIGA</button>
-            <button class="btn-down" onclick="makeTrade('SELL')">📉 PASTGA</button>
+    <div id="tab-tasks" class="tab-content">
+        <h3>🎁 Bonus Vazifalar</h3>
+        <p style="color: #8b949e; margin-bottom: 15px;">Kanallarga obuna bo'ling va qo'shimcha bonus Stars yutib oling.</p>
+        <div id="tasks-list">
+            <div class="task-card">
+                <h4>Haqiqiy tizer kanal</h4>
+                <p style="color: #58a6ff; margin: 5px 0;">+15 Stars</p>
+                <button class="btn-primary" style="background: #238636;" onclick="window.open('https://t.me/TEKKIST1')">Bajarish</button>
+            </div>
         </div>
     </div>
 
-    <div id="status-message"></div>
+    <div id="tab-trade" class="tab-content active">
+        <div class="trade-container">
+            <div class="asset-selector">
+                <button class="asset-btn active" onclick="selectAsset('nft', this)">🎨 NFT</button>
+                <button class="asset-btn" onclick="selectAsset('gift', this)">🎁 Gift</button>
+                <button class="asset-btn" onclick="selectAsset('stars', this)">⭐ Stars</button>
+            </div>
+
+            <div class="chart-box">
+                <div id="live-status" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); padding: 3px 8px; border-radius: 5px; font-size: 12px; color: #238636;">● LIVE TRADING</div>
+                <div id="chart-price" style="font-size: 24px; font-weight: bold; color: #238636;">$1,425.80</div>
+                <div class="chart-line" id="chart-line" style="top: 50%;"></div>
+            </div>
+
+            <input type="number" id="bet-amount" class="input-box" value="10" min="5" placeholder="Tikiladigan Stars miqdori">
+
+            <div class="trade-buttons">
+                <button class="btn-up" onclick="placeTrade('up')">▲ TEPAGA (Yashil)</button>
+                <button class="btn-down" onclick="placeTrade('down')">▼ PASTGA (Qizil)</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-auction" class="tab-content">
+        <h3>🔨 Stars Auksioni</h3>
+        <p style="color: #8b949e; margin-bottom: 15px;">Eng ko'p Stars tikkan odam 24 soat ichida sovrinni yutib oladi.</p>
+        <div class="auc-card">
+            <h4>Telegram Premium (1 oylik)</h4>
+            <p style="margin: 5px 0;">Hozirgi eng baland tikish: <b style="color: #f39c12;">150 Stars</b></p>
+            <p style="color: #8b949e; font-size: 12px; margin-bottom: 10px;">Tugash vaqti: 18 soat qoldi</p>
+            <input type="number" id="auc-bid" class="input-box" placeholder="Sizning tikishingiz" style="text-align: left; margin-bottom: 10px;">
+            <button class="btn-primary" style="background: #f39c12; color: black;">Stavka qo'yish</button>
+        </div>
+    </div>
+
+    <div id="tab-account" class="tab-content">
+        <h3>👤 Shaxsiy Hisob</h3>
+        <div class="acc-card" style="text-align: center;">
+            <p style="color: #8b949e;">Sizning maxsus kodingiz</p>
+            <h2 id="my-code" style="color: #58a6ff; margin: 5px 0;">------</h2>
+        </div>
+        <div class="acc-card">
+            <h4>📊 Savdo Statistikasi</h4>
+            <p style="margin-top: 8px;">Muvaffaqiyatli treydlar: <span id="stat-wins" style="color: #238636; font-weight: bold;">0</span></p>
+            <p style="margin-top: 5px;">Zararli treydlar: <span id="stat-losses" style="color: #da3637; font-weight: bold;">0</span></p>
+        </div>
+        <button class="btn-primary" style="background: #da3637;" onclick="alert('Minimal yechish miqdori yo\'q. Stars botingiz balansiga avtomatik o\'tadi!')">Mablag'ni Yechib Olish</button>
+    </div>
+
+    <div id="admin-screen" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0d1117; z-index: 20000; padding: 20px; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3>👑 Boshqaruv Paneli (Admin)</h3>
+            <button onclick="closeAdmin()" style="background: #da3637; color: white; border: none; padding: 5px 10px; border-radius: 5px;">Yopish</button>
+        </div>
+        <div class="acc-card">
+            <h4>🎯 Foydalanuvchi Yutish foizini sozlash</h4>
+            <input type="text" id="adm-uid" class="input-box" placeholder="User ID kiriting" style="margin: 10px 0; text-align: left;">
+            <input type="number" id="adm-rate" class="input-box" placeholder="Yutish foizi (Masalan: 80)" style="margin-bottom: 10px; text-align: left;">
+            <button class="btn-primary" onclick="setWinRate()">Foizni Saqlash</button>
+        </div>
+    </div>
+
+    <div class="navbar">
+        <div class="nav-item" onclick="switchTab('transfer', this)">
+            <div class="nav-icon">💸</div>
+            <span>Tashlash</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('tasks', this)">
+            <div class="nav-icon">🎁</div>
+            <span>Vazifalar</span>
+        </div>
+        <div class="nav-item center-item active" onclick="switchTab('trade', this)">
+            <div class="nav-icon">📈</div>
+        </div>
+        <div class="nav-item" onclick="switchTab('auction', this)">
+            <div class="nav-icon">🔨</div>
+            <span>Auksion</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('account', this)">
+            <div class="nav-icon">👤</div>
+            <span>Profil</span>
+        </div>
+    </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand(); // Mini Appni to'liq ekranga ochish
+        let tg = window.Telegram.WebApp;
+        tg.expand();
 
-        const BASE_URL = "https://traderfx-app.onrender.com";
-        const userId = tg.initDataUnsafe?.user?.id || 5143323565; // Test uchun default ID
-        const userName = tg.initDataUnsafe?.user?.first_name || "Trejder";
+        let userId = tg.initDataUnsafe?.user?.id || 7835537335; // Test uchun default ID
+        let currentAsset = 'nft';
+        let currentBalance = 0;
 
-        document.getElementById('user-name').innerText = userName;
+        document.getElementById('username').innerText = tg.initDataUnsafe?.user?.first_name || "Treder";
 
-        // 1. Foydalanuvchi ma'lumotlarini serverdan yuklash
-        async function loadUserData() {
+        // Sahifani yuklashda foydalanuvchi ma'lumotlarini serverdan olish
+        async function loadUserInfo() {
             try {
-                const response = await fetch(`${BASE_URL}/api/user_data?user_id=${userId}`);
-                const data = await response.json();
-                document.getElementById('user-balance').innerText = data.stars_balance;
-                
-                const total = data.win_count + data.loss_count;
-                const wr = total > 0 ? Math.round((data.win_count / total) * 100) : 0;
-                document.getElementById('user-wr').innerText = wr;
-            } catch (error) {
-                console.error("Ma'lumot yuklashda xatolik:", error);
+                let res = await fetch(`/api/user-info?user_id=${userId}`);
+                let json = await res.json();
+                if(json.status === "success") {
+                    currentBalance = json.data.balance;
+                    document.getElementById('user-balance').innerText = currentBalance;
+                    document.getElementById('my-code').innerText = json.data.internal_code;
+                    document.getElementById('stat-wins').innerText = json.data.wins;
+                    document.getElementById('stat-losses').innerText = json.data.losses;
+                    
+                    if(json.is_admin) {
+                        document.getElementById('admin-btn').style.display = 'block';
+                    }
+                }
+            } catch (e) {
+                console.log("Serverga ulanishda xato!");
             }
         }
 
-        // 2. Savdo qilish (BUY yoki SELL)
-        async function makeTrade(direction) {
-            const asset = document.getElementById('asset-select').value;
-            const amount = parseInt(document.getElementById('trade-amount').value);
-            const statusBox = document.getElementById('status-message');
+        // Bo'limlarni almashtirish (5 talik menyu)
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            element.classList.add('active');
+        }
 
-            if (!amount || amount <= 0) {
-                alert("To'g'ri miqdor kiriting!");
+        function selectAsset(asset, btn) {
+            currentAsset = asset;
+            document.querySelectorAll('.asset-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // Grafik Narx Simulyatsiyasi (Chiroyli o'zgarish effektlari bilan)
+        setInterval(() => {
+            let basePrice = currentAsset === 'nft' ? 1400 : currentAsset === 'gift' ? 450 : 95;
+            let change = (Math.random() - 0.5) * 15;
+            let finalPrice = (basePrice + change).toFixed(2);
+            
+            let priceEl = document.getElementById('chart-price');
+            let lineEl = document.getElementById('chart-line');
+            
+            priceEl.innerText = `$${finalPrice}`;
+            if(change > 0) {
+                priceEl.style.color = '#238636';
+                lineEl.style.background = '#238636';
+                lineEl.style.top = `${40 + Math.random()*20}%`;
+            } else {
+                priceEl.style.color = '#da3637';
+                lineEl.style.background = '#da3637';
+                lineEl.style.top = `${30 + Math.random()*20}%`;
+            }
+        }, 1000);
+
+        // TRADE JOYLASHTIRISH
+        async function placeTrade(direction) {
+            let amount = parseInt(document.getElementById('bet-amount').value);
+            if (amount > currentBalance) {
+                alert("Balansizda yetarli Stars yo'q!");
                 return;
             }
 
-            statusBox.style.display = "block";
-            statusBox.style.backgroundColor = "#2b3040";
-            statusBox.style.color = "white";
-            statusBox.innerText = "Savdo ochilmoqda...";
+            // Kutish jarayoni
+            tg.MainButton.setText("📊 Prognoz tekshirilmoqda...");
+            tg.MainButton.show();
 
             try {
-                const response = await fetch(`${BASE_URL}/api/trade?user_id=${userId}&asset=${asset}&amount=${amount}&direction=${direction}`, {
-                    method: 'POST'
+                let res = await fetch('/api/trade/start', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ user_id: userId, amount: amount, direction: direction, asset: currentAsset })
                 });
-                const result = await response.json();
-
-                if (result.status === "success") {
-                    statusBox.innerText = result.message;
-                    if (result.message.includes("Yutdingiz")) {
-                        statusBox.style.backgroundColor = "rgba(14, 203, 129, 0.2)";
-                        statusBox.style.color = "#0ecb81";
-                    } else {
-                        statusBox.style.backgroundColor = "rgba(246, 70, 93, 0.2)";
-                        statusBox.style.color = "#f6465d";
-                    }
-                    loadUserData(); // Balansni yangilash
-                } else {
-                    statusBox.innerText = result.message;
-                    statusBox.style.backgroundColor = "rgba(246, 70, 93, 0.2)";
-                    statusBox.style.color = "#f6465d";
+                let json = await res.json();
+                
+                if(json.status === "success") {
+                    loadUserInfo();
+                    tg.MainButton.hide();
+                    alert(json.result === 'win' ? "🎉 G'ALABA! Balans ko'tarildi!" : "❌ AZZOB! Prognoz noto'g'ri chiqdi.");
                 }
-            } catch (error) {
-                statusBox.innerText = "Server bilan aloqa uzildi!";
+            } catch(e) {
+                tg.MainButton.hide();
+                alert("Savdo amalga oshmadi.");
             }
         }
 
-        // 3. Grafik simulyatsiyasi
-        const ctx = document.getElementById('tradeChart').getContext('2d');
-        let chartData = Array.from({length: 15}, () => Math.floor(Math.random() * 100) + 60000);
-        
-        const tradeChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array(15).fill(''),
-                datasets: [{
-                    label: 'Narx',
-                    data: chartData,
-                    borderColor: '#0ecb81',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    fill: false,
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { x: { display: false }, y: { grid: { color: '#24293a' } } }
+        // STARS O'TKAZISH (1-BO'LIM)
+        async function processTransfer() {
+            let code = document.getElementById('target-code').value;
+            let amount = parseInt(document.getElementById('transfer-amount').value);
+
+            if(!code || !amount) { alert("Hamma maydonlarni to'ldiring!"); return; }
+
+            let res = await fetch('/api/transfer', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ user_id: userId, code: code, amount: amount })
+            });
+            let json = await res.json();
+            if(json.status === "success") {
+                alert("💸 O'tkazma bajarildi! Telegram botingizga chek yuborildi.");
+                loadUserInfo();
+            } else {
+                alert(json.message);
             }
-        });
+        }
 
-        // Grafikni har soniyada yangilab turish
-        setInterval(() => {
-            chartData.shift();
-            const lastPrice = chartData[chartData.length - 1];
-            const change = (Math.random() - 0.5) * 50;
-            const newPrice = lastPrice + change;
-            chartData.push(newPrice);
+        // ADMIN FUNKSIYALARI
+        function openAdmin() { document.getElementById('admin-screen').style.display = 'block'; }
+        function closeAdmin() { document.getElementById('admin-screen').style.display = 'none'; }
+
+        async function setWinRate() {
+            let tUid = document.getElementById('adm-uid').value;
+            let rate = document.getElementById('adm-rate').value;
             
-            tradeChart.data.datasets[0].borderColor = newPrice >= lastPrice ? '#0ecb81' : '#f6465d';
-            tradeChart.update();
-        }, 1000);
+            let res = await fetch('/api/admin/set-rate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ target_user_id: tUid, rate: rate })
+            });
+            let json = await res.json();
+            if(json.status === "success") {
+                alert("Muvaffaqiyatli o'zgartirildi!");
+                closeAdmin();
+            }
+        }
 
-        // Sahifa yuklanganda ma'lumotlarni olib kelish
-        loadUserData();
+        // Yuklanganda ishga tushirish
+        loadUserInfo();
     </script>
 </body>
-</html>
-
+                </html>
+                
