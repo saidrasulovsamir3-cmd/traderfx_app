@@ -20,11 +20,15 @@ def send_welcome(message):
     markup.add(btn)
     bot.send_message(message.chat.id, "TradeStar'ga xush kelibsiz! 📈\nPastdagi tugmani bosing.", reply_markup=markup)
 
-@bot.message_handler(content_types=['web_app_data'])
+    @bot.message_handler(content_types=['web_app_data'])
 def web_app_data(message):
     data = message.web_app_data.data
-    bot.send_message(message.chat.id, f"Siz {data} bo'limini tanladingiz!")
-
+    
+    if data == 'TEKSHIRISH':
+        bot.send_message(message.chat.id, "✅ Obunalar tekshirilmoqda...")
+    else:
+        bot.send_message(message.chat.id, f"Siz {data} bo'limiga o'tdingiz!")
+        
 if __name__ == "__main__":
     threading.Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000}).start()
     bot.infinity_polling()
