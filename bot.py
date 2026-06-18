@@ -3,13 +3,13 @@ from flask import Flask, render_template
 import threading
 import os
 
-TOKEN = "8849052059:AAFl352_KQWgnT1PyIf_LdQpvPQAcs9RDDs"
+TOKEN = "8849052059:AAFTZsNpsnY5niZZnvlFQP-IX4U0CWxfWsQ"
 bot = telebot.TeleBot(TOKEN)
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__, template_folder='.')
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return "Bot ishlayapti!"
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -27,8 +27,11 @@ def web_app_data(message):
     else:
         bot.send_message(message.chat.id, f"Siz {data} bo'limini tanladingiz!")
 
-if __name__ == "__main__":
+def run_flask():
     port = int(os.environ.get("PORT", 5000))
-    threading.Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': port}).start()
+    app.run(host='0.0.0.0', port=port)
+
+if __name__ == "__main__":
+    threading.Thread(target=run_flask).start()
     bot.infinity_polling()
     
