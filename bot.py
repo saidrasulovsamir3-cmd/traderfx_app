@@ -14,22 +14,21 @@ def home():
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    # Sening URL manziling
     url = "https://traderfx-app-1.onrender.com"
     btn = telebot.types.KeyboardButton(text="🚀 Trade App'ni ochish", web_app=telebot.types.WebAppInfo(url=url))
     markup.add(btn)
     bot.send_message(message.chat.id, "TradeStar'ga xush kelibsiz! 📈\nPastdagi tugmani bosing.", reply_markup=markup)
 
-    @bot.message_handler(content_types=['web_app_data'])
+@bot.message_handler(content_types=['web_app_data'])
 def web_app_data(message):
     data = message.web_app_data.data
-    
     if data == 'TEKSHIRISH':
         bot.send_message(message.chat.id, "✅ Obunalar tekshirilmoqda...")
     else:
-        bot.send_message(message.chat.id, f"Siz {data} bo'limiga o'tdingiz!")
-        
+        bot.send_message(message.chat.id, f"Siz {data} bo'limini tanladingiz!")
+
 if __name__ == "__main__":
-    threading.Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': 5000}).start()
+    port = int(os.environ.get("PORT", 5000))
+    threading.Thread(target=app.run, kwargs={'host': '0.0.0.0', 'port': port}).start()
     bot.infinity_polling()
     
