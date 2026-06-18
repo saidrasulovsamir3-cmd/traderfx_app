@@ -2,9 +2,8 @@ import telebot
 from flask import Flask, render_template
 import threading
 import os
-import json
 
-TOKEN = "8849052059:AAFl352_KQWgnT1PyIf_LdQpvPQAcs9RDDs"
+TOKEN = "8849052059:AAFTZsNpsnY5niZZnvlFQP-IX4U0CWxfWsQ"
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__, template_folder='templates')
 
@@ -14,12 +13,12 @@ def home():
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    markup = telebot.types.InlineKeyboardMarkup()
-    # MUVAFFAQIYATLI LINKNI SHU YERGA YOZ:
-    url = "https://traderfx-app-1.onrender.com" 
-    btn = telebot.types.InlineKeyboardButton(text="🚀 Trade App'ni ochish", web_app=telebot.types.WebAppInfo(url=url))
+    markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+    # Sening URL manziling
+    url = "https://traderfx-app-1.onrender.com"
+    btn = telebot.types.KeyboardButton(text="🚀 Trade App'ni ochish", web_app=telebot.types.WebAppInfo(url=url))
     markup.add(btn)
-    bot.send_message(message.chat.id, "TradeStar'ga xush kelibsiz! 📈", reply_markup=markup)
+    bot.send_message(message.chat.id, "TradeStar'ga xush kelibsiz! 📈\nPastdagi tugmani bosing.", reply_markup=markup)
 
 @bot.message_handler(content_types=['web_app_data'])
 def web_app_data(message):
